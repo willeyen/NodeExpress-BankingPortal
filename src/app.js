@@ -2,6 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const {accounts, users, writeJSON} = require('./data');
+const accountRoutes = require('./routes/accounts');
+const servicesRoutes = require('./routes/services');
 
 const app = express();
 
@@ -18,61 +20,15 @@ app.get('/', (req, res) => {
     });
 });
 
-app.get('/savings', (req, res) => {
-    res.render('account', {
-        account: accounts.savings
-    });
-});
-
-app.get('/checking', (req, res) => {
-    res.render('account', {
-        account: accounts.checking
-    });
-});
-
-app.get('/credit', (req, res) => {
-    res.render('account', {
-        account: accounts.credit
-    });
-});
-
 app.get('/profile', (req, res) => {
     res.render('profile', {
         user: users[0]
     });
 });
 
-app.get('/transfer', (req, res) => {
-    res.render('transfer');
-});
+app.use('/account', accountRoutes);
 
-app.get('/payment', (req, res) => {
-    res.render('payment', {
-        account: accounts.credit
-    });
-});
-
-app.post('/payment', (req, res) => {
-    accounts.credit.balance = accounts.credit.balance - req.body.amount;
-    accounts.credit.available = parseInt(accounts.credit.available) + parseInt(req.body.amount);
-    writeJSON();
-    res.render('payment', {
-        message: "Payment Successful", 
-        account: accounts.credit
-    });
-});
-
-app.post('/transfer', (req, res) => {
-    const {from, to, amount} = req.body;
-    const newBalanceFrom = accounts[from].balance - amount;
-    accounts[from].balance = newBalanceFrom;
-    const newBalanceTo = parseInt(accounts[to].balance) + parseInt(amount);
-    accounts[to].balance = newBalanceTo;
-    writeJSON();
-    res.render('transfer', {
-        message: "Transfer Completed"
-    });
-});
+app.use('/services', servicesRoutes);
 
 app.listen(3000, () => {
     console.log('PS Project Running on port 3000!');
